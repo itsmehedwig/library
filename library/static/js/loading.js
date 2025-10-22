@@ -60,6 +60,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Student verification form
+    const verifyForm = document.querySelector('form[action*="verify"]');
+    if (verifyForm && !verifyForm.classList.contains('no-loading')) {
+        verifyForm.addEventListener('submit', function() {
+            showLoading('Verifying...', 'Checking student ID');
+        });
+    }
+    
+    // Export functionality loading
+    const exportForms = document.querySelectorAll('form[action*="export"]');
+    exportForms.forEach(form => {
+        form.addEventListener('submit', function() {
+            showLoading('Exporting Data...', 'Generating CSV file');
+            // Auto-hide after file download starts (3 seconds)
+            setTimeout(() => {
+                hideLoading();
+            }, 3000);
+        });
+    });
+    
+    // Export links/buttons with data-export attribute
+    const exportButtons = document.querySelectorAll('[data-export]');
+    exportButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const message = button.getAttribute('data-export-message') || 'Exporting...';
+            showLoading(message, 'Preparing your file');
+            // Auto-hide after file download starts (3 seconds)
+            setTimeout(() => {
+                hideLoading();
+            }, 3000);
+        });
+    });
+    
     // Generic forms with data-loading attribute
     const loadingForms = document.querySelectorAll('form[data-loading]');
     loadingForms.forEach(form => {
@@ -68,6 +101,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const submessage = form.getAttribute('data-loading-submessage') || 'Please wait';
             showLoading(message, submessage);
         });
+    });
+    
+    // Add/Edit/Delete forms (modals and standalone pages)
+    const crudForms = document.querySelectorAll('form[action*="add"], form[action*="edit"], form[action*="delete"]');
+    crudForms.forEach(form => {
+        if (!form.classList.contains('no-loading')) {
+            form.addEventListener('submit', function() {
+                const action = form.action;
+                if (action.includes('add')) {
+                    showLoading('Adding...', 'Creating new record');
+                } else if (action.includes('edit')) {
+                    showLoading('Updating...', 'Saving changes');
+                } else if (action.includes('delete')) {
+                    showLoading('Deleting...', 'Removing record');
+                } else {
+                    showLoading('Processing...', 'Please wait');
+                }
+            });
+        }
     });
 });
 

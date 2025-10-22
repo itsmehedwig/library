@@ -13,6 +13,9 @@
             <i class="fas fa-search mr-2"></i>Search
         </button>
     </form>
+    <a href="{% url 'export_books_by_category' %}" data-export data-export-message="Exporting Books..." class="bg-indigo-600 text-white px-4 md:px-6 py-2 rounded-lg hover:bg-indigo-700 text-center text-sm md:text-base">
+        <i class="fas fa-file-download mr-2"></i>Export CSV
+    </a>
     <a href="{% url 'add_book' %}" class="bg-green-600 text-white px-4 md:px-6 py-2 rounded-lg hover:bg-green-700 text-center text-sm md:text-base">
         <i class="fas fa-plus mr-2"></i>Add Book
     </a>

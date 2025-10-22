@@ -33,6 +33,8 @@ def user_login(request):
                 login(request, user)
                 if user.user_type == 'admin':
                     return redirect('admin_dashboard')
+                elif user.user_type == 'librarian':
+                    return redirect('librarian_dashboard')
                 elif user.user_type == 'pos':
                     return redirect('pos_home')
                 else:
@@ -460,7 +462,7 @@ def import_students_csv(request):
 
 @login_required
 def manage_books(request):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     from django.core.paginator import Paginator
@@ -526,7 +528,7 @@ def edit_book(request, book_id):
 
 @login_required
 def manage_students(request):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     from django.core.paginator import Paginator
@@ -557,7 +559,7 @@ def manage_students(request):
 
 @login_required
 def pending_students(request):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     pending = Student.objects.filter(user__isnull=False, is_approved=False).order_by('-created_at')
@@ -569,7 +571,7 @@ def pending_students(request):
 
 @login_required
 def approve_student(request, student_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -589,7 +591,7 @@ def approve_student(request, student_id):
 
 @login_required
 def reject_student(request, student_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -815,7 +817,7 @@ def pos_return_book(request):
 
 @login_required
 def pending_transactions(request):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     pending = Transaction.objects.filter(approval_status='pending').select_related('student', 'created_by').prefetch_related('items__book').order_by('-borrowed_date')
@@ -827,7 +829,7 @@ def pending_transactions(request):
 
 @login_required
 def approve_transaction(request, transaction_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -850,7 +852,7 @@ def approve_transaction(request, transaction_id):
 
 @login_required
 def reject_transaction(request, transaction_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -870,6 +872,8 @@ def reject_transaction(request, transaction_id):
 def dashboard(request):
     if request.user.user_type == 'admin':
         return redirect('admin_dashboard')
+    elif request.user.user_type == 'librarian':
+        return redirect('librarian_dashboard')
     elif request.user.user_type == 'pos':
         return redirect('pos_home')
     else:
@@ -948,7 +952,7 @@ def admin_settings(request):
 
 @login_required
 def delete_book(request, book_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     book = get_object_or_404(Book, id=book_id)
@@ -964,7 +968,7 @@ def delete_book(request, book_id):
 
 @login_required
 def add_student(request):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -981,7 +985,7 @@ def add_student(request):
 
 @login_required
 def edit_student(request, student_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     student = get_object_or_404(Student, id=student_id)
@@ -1000,7 +1004,7 @@ def edit_student(request, student_id):
 
 @login_required
 def delete_student(request, student_id):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     student = get_object_or_404(Student, id=student_id)
