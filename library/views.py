@@ -193,7 +193,7 @@ def student_dashboard(request):
     if category:
         books = books.filter(category=category)
     
-    categories = Book.objects.values_list('category', flat=True).distinct()
+    categories = Book.objects.values_list('category', flat=True).distinct().order_by('category')
     
     returned_count = Transaction.objects.filter(
         student=student,
@@ -1064,7 +1064,7 @@ def student_books(request):
     if category:
         books = books.filter(category=category)
     
-    categories = Book.objects.values_list('category', flat=True).distinct()
+    categories = Book.objects.values_list('category', flat=True).distinct().order_by('category')
     
     paginator = Paginator(books, 12)
     page_number = request.GET.get('page')

@@ -7,9 +7,13 @@
     <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div class="text-center mb-8">
             <div class="flex justify-center mb-4">
-                <i class="fas fa-book-reader text-6xl text-blue-600"></i>
+                {% if system_settings.system_logo %}
+                    <img src="{{ system_settings.system_logo.url }}" alt="System Logo" class="h-24 w-24 object-contain">
+                {% else %}
+                    <i class="fas fa-book-reader text-6xl text-blue-600"></i>
+                {% endif %}
             </div>
-            <h1 class="text-3xl font-bold text-gray-800">Library? ehhh? ehhngottt!</h1>
+            <h1 class="text-3xl font-bold text-gray-800">{{ system_settings.system_name|default:"Library? ehhh? ehhngottt!" }}</h1>
             <p class="text-gray-600 mt-2">Sign in to your account</p>
         </div>
         
