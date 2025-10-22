@@ -31,8 +31,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'library',          # your app
-    'crispy_forms',     # Crispy Forms only
+    'library',
+    'crispy_forms',
+    'crispy_tailwind',
 ]
 
 # Crispy Forms template pack
