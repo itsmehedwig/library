@@ -6,7 +6,35 @@ A Django-based library management system designed for educational institutions w
 
 ## Recent Changes (October 22, 2025)
 
-### System Audit and Repair Completed ✅ (Latest)
+### CSV Import Enhancement and Librarian Permissions ✅ (Latest)
+**Date: October 22, 2025**
+1. **CSV Import Format Updated**
+   - Updated book CSV import to accept new format: `ISBN, Book Name, Author, Date Published, Category, Pieces, Description`
+   - Maintains backwards compatibility with old format: `isbn, title, author, category, publisher, year_published, copies_total, description`
+   - Updated student CSV import to accept: `Student ID, Last Name, First Name, Middle Name, Course, Year, Section`
+   - Also accepts old format: `student_id, last_name, first_name, middle_name, course, year, section`
+
+2. **Librarian Import Permissions**
+   - Librarians can now import books (previously admin-only)
+   - Librarians can now import students (previously admin-only)
+   - All librarian imports are logged in AdminLog for audit trail
+
+3. **CSV Template Downloads**
+   - Added downloadable CSV templates for books with sample data
+   - Added downloadable CSV templates for students with sample data
+   - Templates accessible from import pages for both admin and librarian roles
+
+4. **Improved Error Messages**
+   - CSV import errors now show the exact expected format
+   - Error messages display up to 10 errors (previously 5)
+   - Clear validation messages for missing or invalid fields
+
+5. **Enhanced Import UI**
+   - Import pages now display clear format instructions
+   - Added download buttons for CSV templates with examples
+   - Updated templates show required vs optional fields
+
+### System Audit and Repair Completed ✅
 **Date: October 22, 2025**
 1. **Critical Bug Fixes**
    - Fixed UTF-16 encoded requirements.txt file to proper UTF-8 encoding
