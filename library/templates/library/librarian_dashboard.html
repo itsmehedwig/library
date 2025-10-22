@@ -1,0 +1,139 @@
+{% extends 'library/base.html' %}
+
+{% block title %}Librarian Dashboard - Library System{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">
+        <i class="fas fa-tachometer-alt mr-2"></i>Librarian Dashboard
+    </h1>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-semibold">Total Books</p>
+                    <p class="text-3xl font-bold mt-1">{{ total_books }}</p>
+                </div>
+                <i class="fas fa-book text-4xl text-blue-200"></i>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-green-500 to-green-600 text-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-green-100 text-sm font-semibold">Available Books</p>
+                    <p class="text-3xl font-bold mt-1">{{ total_available }}</p>
+                </div>
+                <i class="fas fa-book-open text-4xl text-green-200"></i>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-purple-500 to-purple-600 text-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-purple-100 text-sm font-semibold">Total Students</p>
+                    <p class="text-3xl font-bold mt-1">{{ total_students }}</p>
+                </div>
+                <i class="fas fa-users text-4xl text-purple-200"></i>
+            </div>
+        </div>
+
+        <div class="bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-lg shadow-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-orange-100 text-sm font-semibold">Currently Borrowed</p>
+                    <p class="text-3xl font-bold mt-1">{{ total_borrowed }}</p>
+                </div>
+                <i class="fas fa-hand-holding-heart text-4xl text-orange-200"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <a href="{% url 'manage_books' %}" class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="flex items-center">
+                <div class="bg-blue-100 rounded-full p-4 mr-4">
+                    <i class="fas fa-book text-blue-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">Manage Books</h3>
+                    <p class="text-gray-600 text-sm">Add, edit, or remove books</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="{% url 'manage_students' %}" class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="flex items-center">
+                <div class="bg-green-100 rounded-full p-4 mr-4">
+                    <i class="fas fa-users text-green-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">Manage Students</h3>
+                    <p class="text-gray-600 text-sm">View and manage students</p>
+                </div>
+            </div>
+        </a>
+
+        <a href="{% url 'pending_transactions' %}" class="bg-white rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow">
+            <div class="flex items-center">
+                <div class="bg-yellow-100 rounded-full p-4 mr-4">
+                    <i class="fas fa-clock text-yellow-600 text-2xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-800">Pending Approvals</h3>
+                    <p class="text-gray-600 text-sm">Borrowing: {{ pending_borrowing }}</p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="bg-gray-100 px-6 py-4 border-b">
+            <h2 class="text-xl font-bold text-gray-800">
+                <i class="fas fa-history mr-2"></i>Recent Transactions
+            </h2>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Transaction Code</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Student</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Books</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Due Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in recent_transactions %}
+                    <tr class="border-b hover:bg-gray-50">
+                        <td class="px-6 py-4 font-mono text-sm">{{ transaction.transaction_code }}</td>
+                        <td class="px-6 py-4">{{ transaction.student.get_full_name }}</td>
+                        <td class="px-6 py-4 text-sm">{{ transaction.items.count }} book(s)</td>
+                        <td class="px-6 py-4 text-sm">{{ transaction.due_date|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4">
+                            {% if transaction.is_overdue %}
+                            <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Overdue</span>
+                            {% else %}
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Active</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            <i class="fas fa-inbox text-4xl mb-2 block"></i>
+                            <p>No recent transactions</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

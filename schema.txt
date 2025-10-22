@@ -1,0 +1,266 @@
+DATABASE SCHEMA DOCUMENTATION
+Library Management System
+================================
+
+1. USER MODEL
+--------------
+Table: library_user
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- username: CharField(100) [UNIQUE, NOT NULL]
+- password: CharField(128) [NOT NULL - hashed]
+- email: EmailField [NULLABLE]
+- user_type: CharField(10) [CHOICES: student, admin, librarian, pos]
+- is_active: BooleanField [DEFAULT: True]
+- is_staff: BooleanField [DEFAULT: False]
+- is_superuser: BooleanField [DEFAULT: False]
+- date_joined: DateTimeField [DEFAULT: now]
+- last_login: DateTimeField [NULLABLE]
+
+Relationships:
+- One-to-One with Student (through student.user)
+- One-to-One with Librarian (through librarian.user)
+- One-to-Many with Transaction (as created_by)
+- One-to-Many with Transaction (as approved_by)
+
+
+2. STUDENT MODEL
+----------------
+Table: library_student
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- user_id: ForeignKey(User) [NULLABLE, ONE-TO-ONE]
+- student_id: CharField(50) [UNIQUE, NOT NULL]
+- last_name: CharField(100) [NOT NULL]
+- first_name: CharField(100) [NOT NULL]
+- middle_name: CharField(100) [NULLABLE]
+- course: CharField(100) [NOT NULL]
+- year: CharField(20) [NOT NULL]
+- section: CharField(20) [NOT NULL]
+- phone_number: CharField(20) [NULLABLE]
+- profile_photo: ImageField (upload_to='profile_photos/') [NULLABLE]
+- is_verified: BooleanField [DEFAULT: False]
+- is_approved: BooleanField [DEFAULT: False]
+- created_at: DateTimeField [AUTO_ADD_NOW]
+
+Relationships:
+- One-to-One with User (student.user -> User)
+- One-to-Many with Transaction (student -> transactions)
+- One-to-Many with VerificationCode (student -> verification_codes)
+
+
+3. LIBRARIAN MODEL
+------------------
+Table: library_librarian
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- user_id: ForeignKey(User) [NOT NULL, ONE-TO-ONE]
+- name: CharField(200) [NOT NULL]
+- email: EmailField [NOT NULL]
+- profile_photo: ImageField (upload_to='librarian_photos/') [NULLABLE]
+- created_at: DateTimeField [AUTO_ADD_NOW]
+
+Relationships:
+- One-to-One with User (librarian.user -> User)
+
+
+4. BOOK MODEL
+-------------
+Table: library_book
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- isbn: CharField(20) [UNIQUE, NOT NULL]
+- title: CharField(200) [NOT NULL]
+- author: CharField(200) [NOT NULL]
+- category: CharField(100) [NOT NULL]
+- publisher: CharField(200) [NULLABLE]
+- year_published: IntegerField [NULLABLE]
+- copies_total: IntegerField [DEFAULT: 1]
+- copies_available: IntegerField [DEFAULT: 1]
+- description: TextField [NULLABLE]
+- book_cover: ImageField (upload_to='book_covers/') [NULLABLE]
+- created_at: DateTimeField [AUTO_ADD_NOW]
+- updated_at: DateTimeField [AUTO_UPDATE]
+
+Relationships:
+- One-to-Many with TransactionItem (book -> transaction_items)
+
+Ordering: By title (ASC)
+
+
+5. TRANSACTION MODEL
+--------------------
+Table: library_transaction
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- transaction_code: CharField(50) [UNIQUE, NOT NULL]
+- student_id: ForeignKey(Student) [NOT NULL]
+- borrowed_date: DateTimeField [DEFAULT: now]
+- due_date: DateTimeField [NOT NULL]
+- return_date: DateTimeField [NULLABLE]
+- status: CharField(10) [CHOICES: borrowed, returned, DEFAULT: borrowed]
+- approval_status: CharField(10) [CHOICES: pending, approved, rejected, DEFAULT: pending]
+- approved_by_id: ForeignKey(User) [NULLABLE, related_name='approved_transactions']
+- approved_at: DateTimeField [NULLABLE]
+- reminder_sent: BooleanField [DEFAULT: False]
+- created_by_id: ForeignKey(User) [NULLABLE]
+
+Relationships:
+- Many-to-One with Student (transaction.student -> Student)
+- Many-to-One with User (transaction.created_by -> User)
+- Many-to-One with User (transaction.approved_by -> User)
+- One-to-Many with TransactionItem (transaction -> items)
+
+Ordering: By borrowed_date (DESC)
+
+
+6. TRANSACTION ITEM MODEL
+-------------------------
+Table: library_transactionitem
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- transaction_id: ForeignKey(Transaction) [NOT NULL, related_name='items']
+- book_id: ForeignKey(Book) [NOT NULL]
+- borrowed_date: DateTimeField [DEFAULT: now]
+- return_date: DateTimeField [NULLABLE]
+- status: CharField(10) [CHOICES: borrowed, returned, DEFAULT: borrowed]
+
+Relationships:
+- Many-to-One with Transaction (item.transaction -> Transaction)
+- Many-to-One with Book (item.book -> Book)
+
+Ordering: By book__title (ASC)
+
+
+7. VERIFICATION CODE MODEL
+--------------------------
+Table: library_verificationcode
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key)
+- student_id: ForeignKey(Student) [NOT NULL]
+- code: CharField(6) [NOT NULL]
+- created_at: DateTimeField [AUTO_ADD_NOW]
+- expires_at: DateTimeField [NOT NULL]
+- is_used: BooleanField [DEFAULT: False]
+
+Relationships:
+- Many-to-One with Student (verification.student -> Student)
+
+
+8. SYSTEM SETTINGS MODEL
+------------------------
+Table: library_systemsettings
+Primary Key: id (AutoField)
+
+Fields:
+- id: AutoField (Primary Key) [SINGLETON: always id=1]
+- system_name: CharField(200) [DEFAULT: 'Library Management System']
+- system_logo: ImageField (upload_to='system/') [NULLABLE]
+- updated_at: DateTimeField [AUTO_UPDATE]
+
+Note: This is a singleton model - only one record exists (id=1)
+
+
+RELATIONSHIPS DIAGRAM
+=====================
+
+User (1) -------- (1) Student
+User (1) -------- (1) Librarian
+User (1) -------- (M) Transaction [as created_by]
+User (1) -------- (M) Transaction [as approved_by]
+
+Student (1) ----- (M) Transaction
+Student (1) ----- (M) VerificationCode
+
+Transaction (1) - (M) TransactionItem
+
+Book (1) -------- (M) TransactionItem
+
+
+KEY BUSINESS RULES
+==================
+
+1. Book Availability:
+   - copies_available = copies_total - (currently borrowed copies)
+   - A book can be borrowed only if copies_available > 0
+
+2. Transaction Flow:
+   - Student submits borrow request -> status: borrowed, approval_status: pending
+   - Admin/Librarian approves -> approval_status: approved
+   - Book is returned -> status: returned, return_date set
+   - TransactionItem tracks individual books in a transaction
+
+3. Student Registration:
+   - Student record must exist (added by admin/librarian)
+   - Student verifies their ID
+   - Student completes registration (creates User account)
+   - Admin/Librarian approves -> is_approved: True, user.is_active: True
+
+4. User Types:
+   - student: Can browse books, borrow, view history
+   - admin: Full system access, manage all entities
+   - librarian: Same as admin (manage books, students, transactions)
+   - pos: Point-of-sale terminal for quick borrow/return
+
+
+INDEXES & CONSTRAINTS
+=====================
+
+Unique Constraints:
+- User.username
+- Student.student_id
+- Book.isbn
+- Transaction.transaction_code
+
+Foreign Key Constraints:
+- Student.user_id -> User.id (ON DELETE CASCADE)
+- Librarian.user_id -> User.id (ON DELETE CASCADE)
+- Transaction.student_id -> Student.id (ON DELETE CASCADE)
+- Transaction.created_by_id -> User.id (ON DELETE SET NULL)
+- Transaction.approved_by_id -> User.id (ON DELETE SET NULL)
+- TransactionItem.transaction_id -> Transaction.id (ON DELETE CASCADE)
+- TransactionItem.book_id -> Book.id (ON DELETE CASCADE)
+- VerificationCode.student_id -> Student.id (ON DELETE CASCADE)
+
+
+MEDIA FILES STRUCTURE
+=====================
+
+media/
+├── profile_photos/        # Student profile pictures
+├── librarian_photos/      # Librarian profile pictures
+├── book_covers/           # Book cover images
+└── system/                # System logo and branding
+
+
+TRANSACTION CODE FORMAT
+=======================
+
+Format: {SCHOOL_CODE}{5-DIGIT-RANDOM}{TIMESTAMP}
+Example: ISU12345202510220830
+
+- SCHOOL_CODE: 'ISU' (default, configurable)
+- Random: 5 random digits
+- Timestamp: YYYYMMDDHHmmss
+
+
+VERIFICATION CODE FORMAT
+========================
+
+Format: 6-digit numeric code
+Example: 123456
+Validity: 15 minutes from creation
