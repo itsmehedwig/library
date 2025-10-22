@@ -164,6 +164,3 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 # DEFAULT AUTO FIELD
 # ---------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-DEBUG = False
-ALLOWED_HOSTS = ['*']  # We'll secure later with your domain
