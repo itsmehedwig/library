@@ -284,14 +284,14 @@ def import_books_csv(request):
                 
                 for row_num, row in enumerate(reader, start=2):
                     try:
-                        isbn = row.get('isbn', '').strip()
-                        title = row.get('title', '').strip()
-                        author = row.get('author', '').strip()
-                        category = row.get('category', '').strip()
-                        publisher = row.get('publisher', '').strip()
-                        year_published = row.get('year_published', '').strip()
-                        copies_total = row.get('copies_total', '1').strip()
-                        description = row.get('description', '').strip()
+                        isbn = row.get('ISBN', row.get('isbn', '')).strip()
+                        title = row.get('Book Name', row.get('Book name', row.get('title', ''))).strip()
+                        author = row.get('Author', row.get('author', '')).strip()
+                        category = row.get('Category', row.get('category', '')).strip()
+                        publisher = row.get('Publisher', row.get('publisher', '')).strip()
+                        year_published = row.get('Date Published', row.get('Date published', row.get('year_published', ''))).strip()
+                        copies_total = row.get('Pieces', row.get('pieces', row.get('copies_total', '1'))).strip()
+                        description = row.get('Description', row.get('description', '')).strip()
                         
                         if not isbn:
                             error_count += 1
@@ -299,22 +299,22 @@ def import_books_csv(request):
                             continue
                         if not title:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing title')
+                            errors_list.append(f'Row {row_num}: Missing Book Name')
                             continue
                         if not author:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing author')
+                            errors_list.append(f'Row {row_num}: Missing Author')
                             continue
                         if not category:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing category')
+                            errors_list.append(f'Row {row_num}: Missing Category')
                             continue
                         
                         copies_num = 1
                         if copies_total:
                             if not copies_total.isdigit() or int(copies_total) < 1:
                                 error_count += 1
-                                errors_list.append(f'Row {row_num}: Invalid copies_total (must be positive integer)')
+                                errors_list.append(f'Row {row_num}: Invalid Pieces (must be positive integer)')
                                 continue
                             copies_num = int(copies_total)
                         
@@ -322,12 +322,12 @@ def import_books_csv(request):
                         if year_published:
                             if not year_published.isdigit():
                                 error_count += 1
-                                errors_list.append(f'Row {row_num}: Invalid year_published (must be a number)')
+                                errors_list.append(f'Row {row_num}: Invalid Date Published (must be a number)')
                                 continue
                             year_num = int(year_published)
                             if year_num < 1000 or year_num > 9999:
                                 error_count += 1
-                                errors_list.append(f'Row {row_num}: Invalid year_published (must be 4 digits)')
+                                errors_list.append(f'Row {row_num}: Invalid Date Published (must be 4 digits)')
                                 continue
                         
                         book, created = Book.objects.get_or_create(
@@ -348,7 +348,7 @@ def import_books_csv(request):
                             if request.user.user_type == 'librarian':
                                 AdminLog.objects.create(
                                     librarian=request.user,
-                                    action='import_books',
+                                    action='book_import',
                                     description=f'Imported book: {title} (ISBN: {isbn})'
                                 )
                         else:
@@ -358,14 +358,22 @@ def import_books_csv(request):
                         error_count += 1
                         errors_list.append(f'Row {row_num}: {str(e)}')
                 
-                if errors_list and len(errors_list) <= 5:
+                if errors_list and len(errors_list) <= 10:
                     for error in errors_list:
+                        messages.warning(request, error)
+                elif errors_list:
+                    messages.warning(request, f'Showing first 10 of {len(errors_list)} errors. Please check your CSV file.')
+                    for error in errors_list[:10]:
                         messages.warning(request, error)
                 
                 messages.success(request, f'Successfully imported {success_count} books. {error_count} errors.')
                 return redirect('manage_books')
+            except KeyError as e:
+                expected_format = 'ISBN, Book Name, Author, Date Published, Category, Pieces, Description'
+                messages.error(request, f'Error: Missing required column in CSV file. Expected format: {expected_format}')
             except Exception as e:
-                messages.error(request, f'Error processing CSV file: {str(e)}')
+                expected_format = 'ISBN, Book Name, Author, Date Published, Category, Pieces, Description'
+                messages.error(request, f'Error processing CSV file: {str(e)}. Expected format: {expected_format}')
         else:
             messages.error(request, 'Invalid form submission. Please upload a valid CSV file.')
     else:
@@ -376,7 +384,7 @@ def import_books_csv(request):
 
 @login_required
 def import_students_csv(request):
-    if request.user.user_type != 'admin':
+    if request.user.user_type not in ['admin', 'librarian']:
         return redirect('dashboard')
     
     if request.method == 'POST':
@@ -393,37 +401,37 @@ def import_students_csv(request):
                 
                 for row_num, row in enumerate(reader, start=2):
                     try:
-                        student_id = row.get('student_id', '').strip()
-                        last_name = row.get('last_name', '').strip()
-                        first_name = row.get('first_name', '').strip()
-                        middle_name = row.get('middle_name', '').strip()
-                        course = row.get('course', '').strip()
-                        year = row.get('year', '').strip()
-                        section = row.get('section', '').strip()
+                        student_id = row.get('Student ID', row.get('student_id', '')).strip()
+                        last_name = row.get('Last Name', row.get('last_name', '')).strip()
+                        first_name = row.get('First Name', row.get('first_name', '')).strip()
+                        middle_name = row.get('Middle Name', row.get('middle_name', '')).strip()
+                        course = row.get('Course', row.get('course', '')).strip()
+                        year = row.get('Year', row.get('year', '')).strip()
+                        section = row.get('Section', row.get('section', '')).strip()
                         
                         if not student_id:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing student_id')
+                            errors_list.append(f'Row {row_num}: Missing Student ID')
                             continue
                         if not last_name:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing last_name')
+                            errors_list.append(f'Row {row_num}: Missing Last Name')
                             continue
                         if not first_name:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing first_name')
+                            errors_list.append(f'Row {row_num}: Missing First Name')
                             continue
                         if not course:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing course')
+                            errors_list.append(f'Row {row_num}: Missing Course')
                             continue
                         if not year:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing year')
+                            errors_list.append(f'Row {row_num}: Missing Year')
                             continue
                         if not section:
                             error_count += 1
-                            errors_list.append(f'Row {row_num}: Missing section')
+                            errors_list.append(f'Row {row_num}: Missing Section')
                             continue
                         
                         student, created = Student.objects.get_or_create(
@@ -439,6 +447,12 @@ def import_students_csv(request):
                         )
                         if created:
                             success_count += 1
+                            if request.user.user_type == 'librarian':
+                                AdminLog.objects.create(
+                                    librarian=request.user,
+                                    action='student_import',
+                                    description=f'Imported student: {last_name}, {first_name} (ID: {student_id})'
+                                )
                         else:
                             error_count += 1
                             errors_list.append(f'Row {row_num}: Student ID {student_id} already exists')
@@ -446,14 +460,24 @@ def import_students_csv(request):
                         error_count += 1
                         errors_list.append(f'Row {row_num}: {str(e)}')
                 
-                if errors_list and len(errors_list) <= 5:
+                if errors_list and len(errors_list) <= 10:
                     for error in errors_list:
+                        messages.warning(request, error)
+                elif errors_list:
+                    messages.warning(request, f'Showing first 10 of {len(errors_list)} errors. Please check your CSV file.')
+                    for error in errors_list[:10]:
                         messages.warning(request, error)
                 
                 messages.success(request, f'Successfully imported {success_count} students. {error_count} errors.')
+                if request.user.user_type == 'librarian':
+                    return redirect('librarian_dashboard')
                 return redirect('admin_dashboard')
+            except KeyError as e:
+                expected_format = 'Student ID, Last Name, First Name, Middle Name, Course, Year, Section'
+                messages.error(request, f'Error: Missing required column in CSV file. Expected format: {expected_format}')
             except Exception as e:
-                messages.error(request, f'Error processing CSV file: {str(e)}')
+                expected_format = 'Student ID, Last Name, First Name, Middle Name, Course, Year, Section'
+                messages.error(request, f'Error processing CSV file: {str(e)}. Expected format: {expected_format}')
     else:
         form = CSVUploadForm()
     
@@ -1295,3 +1319,39 @@ def student_books(request):
     }
     
     return render(request, 'library/student_books.html', context)
+
+
+@login_required
+def download_books_csv_template(request):
+    if request.user.user_type not in ['admin', 'librarian']:
+        return redirect('dashboard')
+    
+    from django.http import HttpResponse
+    import csv
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="books_template.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['ISBN', 'Book Name', 'Author', 'Date Published', 'Category', 'Pieces', 'Description'])
+    writer.writerow(['978-0-123456-78-9', 'Sample Book Title', 'John Doe', '2023', 'Fiction', '5', 'This is a sample book description'])
+    
+    return response
+
+
+@login_required
+def download_students_csv_template(request):
+    if request.user.user_type not in ['admin', 'librarian']:
+        return redirect('dashboard')
+    
+    from django.http import HttpResponse
+    import csv
+    
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="students_template.csv"'
+    
+    writer = csv.writer(response)
+    writer.writerow(['Student ID', 'Last Name', 'First Name', 'Middle Name', 'Course', 'Year', 'Section'])
+    writer.writerow(['2024-12345', 'Dela Cruz', 'Juan', 'Santos', 'BSIT', '1', 'A'])
+    
+    return response
