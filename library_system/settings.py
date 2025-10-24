@@ -86,13 +86,14 @@ WSGI_APPLICATION = 'library_system.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'lib_db'),
-        'USER': os.environ.get('DB_USER', 'lib_db_s1ei_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'AHBm2Oog3B1gcvz5QLEn9n4zL9xqGh1N'),
-        'HOST': os.environ.get('DB_HOST', 'dpg-d3tqatv5r7bs73f23ta0-a'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+        'NAME': 'lib_db',
+        'USER': 'lib_db_s1ei_user',
+        'PASSWORD': 'AHBm2Oog3B1gcvz5QLEn9n4zL9xqGh1N',
+        'HOST': 'dpg-d3tqatv5r7bs73f23ta0-a.render.com',  # <- add .render.com at the end
+        'PORT': '5432',
     }
 }
+
 
 
 # ---------------------------
